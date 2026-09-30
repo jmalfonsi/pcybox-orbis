@@ -103,12 +103,18 @@ Build it from PowerShell:
 .\rust-engine\build.ps1
 ```
 
-Then launch Electron with the Rust backend:
+Build the frontend once, then launch Electron with the Rust backend:
 
 ```powershell
+cd frontend
+npm install
+npm run build
+cd ..
+
 $env:ORBIS_BACKEND = "rust"
 $env:ORBIS_BACKEND_LOG = "1"
 cd electron
+npm install
 npm start
 ```
 
