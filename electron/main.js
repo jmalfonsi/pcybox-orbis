@@ -11,9 +11,18 @@ const resourcesDir = isDev
   ? path.join(__dirname, '..')          // trafic_graph/
   : process.resourcesPath
 
-const backendExe = isDev
+const pythonBackendExe = isDev
   ? path.join(resourcesDir, 'dist', 'backend', 'pcybox-orbis-backend.exe')
   : path.join(resourcesDir, 'pcybox-orbis-backend.exe')
+
+const rustBackendExe = isDev
+  ? path.join(resourcesDir, 'dist', 'rust-engine', 'orbis-engine.exe')
+  : path.join(resourcesDir, 'orbis-engine.exe')
+
+// Phase 1 is intentionally opt-in. Keep Python as the production default until
+// feature parity and benchmarks are validated.
+const backendKind = String(process.env.ORBIS_BACKEND || 'python').toLowerCase()
+const backendExe  = backendKind === 'rust' ? rustBackendExe : pythonBackendExe
 
 const npcapInstaller = isDev
   ? path.join(resourcesDir, 'resources', 'npcap-installer.exe')
@@ -149,7 +158,7 @@ function killBackend() {
 
 function launchBackend() {
   if (!fs.existsSync(backendExe)) {
-    dialog.showErrorBox('PCYBOX Orbis', `Backend introuvable :\n${backendExe}`)
+    dialog.showErrorBox('PCYBOX Orbis', `Backend ${backendKind} introuvable :\n${backendExe}`)
     app.quit(); return
   }
 
@@ -159,16 +168,17 @@ function launchBackend() {
   const env = Object.assign({}, process.env)
   delete env.ELECTRON_RUN_AS_NODE
 
-  backendProc = spawn(backendExe, [], { detached: false, stdio: 'ignore', env })
+  const backendStdio = process.env.ORBIS_BACKEND_LOG === '1' ? 'inherit' : 'ignore'
+  backendProc = spawn(backendExe, [], { detached: false, stdio: backendStdio, env })
   backendProc.on('error', err => {
     if (isQuitting) return
-    dialog.showErrorBox('PCYBOX Orbis', `Impossible de démarrer le backend :\n${err.message}`)
+    dialog.showErrorBox('PCYBOX Orbis', `Impossible de démarrer le backend ${backendKind} :\n${err.message}`)
     app.quit()
   })
   backendProc.on('exit', (code) => {
     if (isQuitting) return      // normal shutdown  don't alert
     if (mainWindow) {
-      dialog.showErrorBox('PCYBOX Orbis', `Backend arrêté (code ${code}).`)
+      dialog.showErrorBox('PCYBOX Orbis', `Backend ${backendKind} arrêté (code ${code}).`)
       app.quit()
     }
   })

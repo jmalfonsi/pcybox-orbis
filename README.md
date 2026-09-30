@@ -93,6 +93,35 @@ Limitations compared to the Electron app:
 - [Npcap](https://npcap.com/) installed
 - Administrator terminal for backend (packet capture)
 
+### Experimental Rust engine (phase 1)
+
+A native Windows capture engine is available under `rust-engine/` for benchmarking the hot path without replacing the current production backend.
+
+Build it from PowerShell:
+
+```powershell
+.\rust-engine\build.ps1
+```
+
+Build the frontend once, then launch Electron with the Rust backend:
+
+```powershell
+cd frontend
+npm install
+npm run build
+cd ..
+
+$env:ORBIS_BACKEND = "rust"
+$env:ORBIS_BACKEND_LOG = "1"
+cd electron
+npm install
+npm start
+```
+
+Python remains the default. The Rust phase-1 engine currently covers Npcap capture, Windows PID/process attribution, 50 ms traffic aggregation, and the frontend-compatible API. GeoIP, anomaly detection, LAN scanning, media monitoring, IPv6, and persistent SQLite history are not migrated yet.
+
+Runtime benchmark counters are exposed at `http://127.0.0.1:8000/engine/stats`. See `rust-engine/README.md` for the benchmark procedure and current limitations.
+
 ### Run locally
 
 ```bash
@@ -127,7 +156,11 @@ pyinstaller backend.spec --distpath ../dist/backend
 cd frontend
 npm run build
 
-# 3 - Build Electron installer
+# 3 - Build experimental Rust engine (phase-1 branch packages both backends)
+cd ..
+.\rust-engine\build.ps1
+
+# 4 - Build Electron installer
 cd electron
 npm run build:dir
 # Then repack app.asar and run:
@@ -140,6 +173,7 @@ npm run build:dir
 ```
 pcybox-orbis/
 - backend/       Python FastAPI + Scapy capture engine
+- rust-engine/  Experimental native Windows capture engine (phase 1)
 - frontend/      React + D3.js UI
 - electron/      Electron wrapper (main.js, splash, preload)
 - website/       Official landing page (orbis.pcybox.com)

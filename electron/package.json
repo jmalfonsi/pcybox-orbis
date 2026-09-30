@@ -36,6 +36,10 @@
         "to": "pcybox-orbis-backend.exe"
       },
       {
+        "from": "../dist/rust-engine/orbis-engine.exe",
+        "to": "orbis-engine.exe"
+      },
+      {
         "from": "../frontend/dist",
         "to": "frontend_dist"
       },

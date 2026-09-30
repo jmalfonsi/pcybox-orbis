@@ -41,3 +41,6 @@ data/*.db-wal
 # Local notes  never push
 FEEDBACK_LOCAL.md
 ROADMAP_PRIVATE.md
+
+# Rust
+rust-engine/target/

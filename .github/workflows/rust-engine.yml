@@ -1,0 +1,38 @@
+name: Rust engine
+
+on:
+  push:
+    paths:
+      - 'rust-engine/**'
+      - '.github/workflows/rust-engine.yml'
+  pull_request:
+    paths:
+      - 'rust-engine/**'
+      - '.github/workflows/rust-engine.yml'
+
+concurrency:
+  group: rust-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo check
+        run: cargo check --manifest-path rust-engine/Cargo.toml
+
+      - name: Unit tests
+        run: cargo test --manifest-path rust-engine/Cargo.toml
+
+      - name: Release build
+        run: cargo build --release --manifest-path rust-engine/Cargo.toml
+
+      - name: Upload native engine
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbis-engine-windows-x64
+          path: rust-engine/target/release/orbis-engine.exe
+          if-no-files-found: error
