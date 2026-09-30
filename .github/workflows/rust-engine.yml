@@ -16,7 +16,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+
       - name: Cargo check
         run: cargo check --manifest-path rust-engine/Cargo.toml
+
+      - name: Unit tests
+        run: cargo test --manifest-path rust-engine/Cargo.toml
+
       - name: Release build
         run: cargo build --release --manifest-path rust-engine/Cargo.toml
+
+      - name: Upload native engine
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbis-engine-windows-x64
+          path: rust-engine/target/release/orbis-engine.exe
+          if-no-files-found: error
