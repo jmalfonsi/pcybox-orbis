@@ -66,11 +66,19 @@ The React frontend can use the same port and WebSocket URL as the Python backend
 
 Python remains the default backend.
 
-To use Rust for one session:
+To use Rust for one session from a clean checkout, build the frontend first:
+
+    cd frontend
+    npm install
+    npm run build
+    cd ..
+
+Then launch Electron:
 
     $env:ORBIS_BACKEND = "rust"
     $env:ORBIS_BACKEND_LOG = "1"
     cd electron
+    npm install
     npm start
 
 To return to Python:
