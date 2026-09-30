@@ -72,7 +72,38 @@ type PcapDatalink = unsafe extern "C" fn(*mut Pcap) -> c_int;
 
 #[cfg(windows)]
 unsafe fn load_wpcap() -> Result<Library, String> {
-    Library::new("wpcap.dll").map_err(|e| format!("cannot load wpcap.dll: {e}"))
+    use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::PathBuf};
+    use windows_sys::Win32::System::LibraryLoader::SetDllDirectoryW;
+
+    // Npcap installs outside the ordinary System32 DLL search directory by
+    // default. Put its directory first so wpcap.dll and its Packet.dll
+    // dependency resolve to Npcap rather than an old WinPcap installation.
+    let windows_dir = std::env::var_os("WINDIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(r"C:\Windows"));
+    let npcap_dir = windows_dir.join("System32").join("Npcap");
+    let wide: Vec<u16> = OsStr::new(&npcap_dir)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    if SetDllDirectoryW(wide.as_ptr()) != 0 {
+        let explicit = npcap_dir.join("wpcap.dll");
+        if explicit.exists() {
+            if let Ok(lib) = Library::new(&explicit) {
+                return Ok(lib);
+            }
+        }
+    }
+
+    // Fallback supports WinPcap-compatible Npcap installs and development
+    // environments that already configured PATH/DLL search directories.
+    Library::new("wpcap.dll").map_err(|e| {
+        format!(
+            "cannot load Npcap wpcap.dll (expected under {}): {e}",
+            npcap_dir.display()
+        )
+    })
 }
 
 #[cfg(not(windows))]
