@@ -150,7 +150,11 @@ pyinstaller backend.spec --distpath ../dist/backend
 cd frontend
 npm run build
 
-# 3 - Build Electron installer
+# 3 - Build experimental Rust engine (phase-1 branch packages both backends)
+cd ..
+.\rust-engine\build.ps1
+
+# 4 - Build Electron installer
 cd electron
 npm run build:dir
 # Then repack app.asar and run:
