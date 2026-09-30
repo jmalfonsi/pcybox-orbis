@@ -116,7 +116,7 @@ struct EngineMetrics {
     matched_local: AtomicU64,
     attributed: AtomicU64,
     emitted_updates: AtomicU64,
-    process_refreshes: AtomicU64,
+    process_refreshes: Arc<AtomicU64>,
 }
 
 #[derive(Clone)]
@@ -183,7 +183,7 @@ async fn main() {
     let metrics = Arc::new(EngineMetrics::default());
     process::spawn_refresh(
         process_snapshot.clone(),
-        Arc::new(AtomicU64Proxy(metrics.clone())),
+        metrics.process_refreshes.clone(),
     );
 
     let state = AppState {
@@ -245,17 +245,6 @@ async fn main() {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .expect("server failed");
-}
-
-// Small adapter letting the process refresh thread increment the metric without
-// making process.rs depend on the whole EngineMetrics type.
-struct AtomicU64Proxy(Arc<EngineMetrics>);
-
-impl std::ops::Deref for AtomicU64Proxy {
-    type Target = AtomicU64;
-    fn deref(&self) -> &Self::Target {
-        &self.0.process_refreshes
-    }
 }
 
 async fn shutdown_signal() {
