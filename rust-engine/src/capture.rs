@@ -72,7 +72,7 @@ type PcapDatalink = unsafe extern "C" fn(*mut Pcap) -> c_int;
 
 #[cfg(windows)]
 unsafe fn load_wpcap() -> Result<Library, String> {
-    use std::{ffi::OsStr, os::windows::ffi::OsStrExt, path::PathBuf};
+    use std::{os::windows::ffi::OsStrExt, path::PathBuf};
     use windows_sys::Win32::System::LibraryLoader::SetDllDirectoryW;
 
     // Npcap installs outside the ordinary System32 DLL search directory by
@@ -82,7 +82,8 @@ unsafe fn load_wpcap() -> Result<Library, String> {
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(r"C:\Windows"));
     let npcap_dir = windows_dir.join("System32").join("Npcap");
-    let wide: Vec<u16> = OsStr::new(&npcap_dir)
+    let wide: Vec<u16> = npcap_dir
+        .as_os_str()
         .encode_wide()
         .chain(std::iter::once(0))
         .collect();
