@@ -1,0 +1,22 @@
+name: Rust engine
+
+on:
+  push:
+    paths:
+      - 'rust-engine/**'
+      - '.github/workflows/rust-engine.yml'
+  pull_request:
+    paths:
+      - 'rust-engine/**'
+      - '.github/workflows/rust-engine.yml'
+
+jobs:
+  windows-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cargo check
+        run: cargo check --manifest-path rust-engine/Cargo.toml
+      - name: Release build
+        run: cargo build --release --manifest-path rust-engine/Cargo.toml
