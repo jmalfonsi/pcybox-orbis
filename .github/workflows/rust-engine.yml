@@ -10,6 +10,10 @@ on:
       - 'rust-engine/**'
       - '.github/workflows/rust-engine.yml'
 
+concurrency:
+  group: rust-engine-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows-check:
     runs-on: windows-latest
